@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} About {% endblock %}
+{% block body %} <h1 class="text-light mt-3 mb-3 text-center">About US</h1>
+<style>
+    .container {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px;
+    }
+
+    /* Image styles */
+    .image {
+        flex: 1;
+        max-width: 50%;
+        padding: 10px;
+    }
+
+    .image img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    .text {
+        flex: 1;
+        max-width: 50%;
+        padding: 10px;
+        color: #fafafa;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .container {
+            flex-direction: column;
+        }
+        .image,
+        .text {
+            max-width: 100%;
+        }
+    }
+</style>
+
+<div class="container">
+    <img src="{% static '/aupt.jpg' %}" alt="">
+    <div class="text mt-5">
+        <b>Lokin Psy</b> is a blog website for Psychology learners and enthusiast.
+        We post blog related to the concept, research and approaches in the psychology. Our <b>Mission</b> is to simplified and psychology more understandable to people.
+        With the aim of <b>Psychology in Nutshell</b>, we are decidated to make provide authentic and trustworthy content.
+        <p>This website is created, managed and designed by <a href="http://instagram.com/lppandey04">Lokendra Pandey</a></p>
+    </div>
+</div>
+
+{% endblock %}

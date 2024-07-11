@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Correction Request{% endblock title %}
+
+{% block body %}
+<style>
+    .form-container{
+        margin: auto;
+        width: 55%;
+        padding: 2%;
+        outline: 0.1em solid rgb(9, 64, 91);
+        border-radius: 12px;
+        box-shadow: 1px 1px 24px rgb(9, 64, 91);
+    }
+    form{
+        margin: auto;
+        width: 100%;
+    }
+</style>
+
+<div class="container">
+    {% include "message.html" %}
+    <h1 class='text-light text-center mb-2 mt-5'> Correction Form</h1>
+    <p class="text-center text-secondary">We are commited to provide accurate and authentic information,</p>
+    <p class="text-center text-secondary mb-5">Submit a correction regarding to citations, grammatical error and content.</p>
+    <div class="form-container mt-5 mb-5">
+        <form method="post" action="correq" class="text-light text-bg-transparent">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="exampleFormControlInput1" class="form-label">Name</label>
+                <input type="text" class="form-control text-white bg-transparent" name="corname" id="corname" placeholder="Your Name" required>
+            </div>
+            <div class="mb-3">
+                <label for="exampleFormControlInput1" class="form-label">Email address</label>
+                <input type="email" class="form-control text-white bg-transparent" name="coremail" id="coremail" placeholder="name@example.com" required>
+            </div>
+            <div class="mb-3">
+                <label for="exampleFormControlInput1" class="form-label">Post Number or Post Title</label>
+                <input type="text" class="form-control text-white bg-transparent" name="corpost" id="corpost" required>
+            </div>
+            <div class="mb-3">
+                <label for="exampleFormControlTextarea1" class="form-label">Message</label>
+                <textarea class="form-control text-white bg-transparent" name="cormessage" id="cormessage" rows="3" required></textarea>
+            </div>
+            <div class="d-flex justify-content-center">
+                <button type="submit" class="btn btn-outline-light text-center mt-2">Submit Correction</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock body %}
