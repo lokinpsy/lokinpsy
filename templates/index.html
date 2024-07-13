@@ -34,30 +34,44 @@
     }
 
     #search-form {
-        position: absolute;
-        top: 65%;
+        position: relative;
+        margin-top: -100px;
         left: 50%;
         transform: translate(-50%, -50%);
         z-index: 3;
+        max-width: 400px;
     }
 
     @media screen and (max-width: 600px) {
       .name {
-        font-size: 30px;
+        font-size: 44px;
         position: absolute;
         top: 25%;
+        width: 100%;
+        text-align: center;
       }
       .tagline {
         font-size: 12px;
         position: absolute;
         top:30%;
+        margin-top:10px;
       }
       #search-form{
-        position: absolute;
-        top: 55%;
+        position: relative;
+        margin-top: -100px;
+        width: 80%;
       }
       .container-bg{
         height: 400px;
+      }
+
+      .sub-container{
+        width: 100%;
+        max-width: none;
+        padding: 24px;
+      }
+      #subForm{
+        padding: 24px;
       }
     }
 
@@ -73,19 +87,40 @@
     }
     .sub-container{
         margin: auto;
-        width: 55%;
+        width: 85%;
         padding: 2%;
         outline: 0.1em solid rgb(9, 64, 91);
         border-radius: 12px;
         box-shadow: 1px 1px 24px rgb(0, 0, 0);
         background-color: rgb(9, 64, 91);
         max-width: 500px;
-        padding-top: 2.3%;
+        padding: 2.3%;
     }
+
     .subcon{
       background-color: rgb(65, 67, 68);
       height: 500px;
     }
+
+    #subForm{
+        padding: 24px;
+    }
+
+    #loader {
+        border: 2px solid #f3f3f3; /* Light grey */
+        border-top: 2px solid #3498db; /* Blue */
+        border-radius: 50%;
+        width: 12px;
+        height: 12px;
+        animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+
 
 </style>
 <script>
@@ -94,12 +129,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const messageDiv = document.getElementById('otpmsg');
     const otpform = document.getElementById('otp-form');
     const subcon = document.getElementById('sub-container');
+    const loader = document.getElementById('loader');
 
     subForm.addEventListener('submit', function(e) {
-        e.preventDefault(); // Prevent default form submission
+        e.preventDefault();
 
         const formData = new FormData(subForm);
-        messageDiv.textContent = 'Sending OTP'
+        messageDiv.textContent = 'Sending OTP';
+        loader.hidden = false;
 
         subcon.style.backgroundColor = 'rgb(9, 64, 91)'
 
@@ -112,10 +149,12 @@ document.addEventListener('DOMContentLoaded', function() {
           if (data.message == "OTP sent successfully") {
                 messageDiv.textContent = data.message;
                 subForm.hidden = true;
-                otpform.hidden = false; 
+                otpform.hidden = false;
+                loader.hidden = true;
           } else {
             messageDiv.textContent = "Email already used";
             subcon.style.backgroundColor = '#FF6961';
+            loader.hidden = true;
           }
         })
         .catch(error => {
@@ -141,10 +180,10 @@ document.addEventListener('DOMContentLoaded', function() {
           <input style="font-weight: bold;" class="form-control form-control-lg" type="text" placeholder="Search topic" name='searchquery' id='searchquery'>
         </div>
         <div class="d-grid gap-2 col-3 mx-auto">
-          <button type="submit" class="btn btn-outline-light my-1 mb-5"><b>Search</b></button>
+          <button type="submit" class="btn btn-outline-light my-1 mb-2"><b>Search</b></button>
         </div>
       </form>
-    
+
     <!-- Post section -->
     <div class="container">
       {% for post in posts %}
@@ -171,7 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
         {% endif %}
       {% endfor %}
     </div>
-  
+
     <!-- Pagination -->
     <hr>
     <nav aria-label="Page navigation example" style="text-align: center;">
@@ -187,7 +226,7 @@ document.addEventListener('DOMContentLoaded', function() {
           {% endif%}
       </ul>
     </nav>
-    
+
     <!-- Subscribe for free -->
     <hr>
     <div id="subcon" class="subcon">
@@ -218,6 +257,9 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>
         </form>
         <div class="text-center mt-2" style="color: aliceblue;" id="otpmsg"></div>
+        <div class="loader" id="loader" hidden></div>
+
+
       </div>
     </div>
 

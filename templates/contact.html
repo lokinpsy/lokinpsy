@@ -6,15 +6,23 @@
 <style>
     .form-container{
         margin: auto;
-        width: 55%;
+        width: 85%;
         padding: 2%;
         outline: 0.1em solid rgb(9, 64, 91);
         border-radius: 12px;
         box-shadow: 1px 1px 24px rgb(9, 64, 91);
+        max-width: 700px;
     }
     form{
         margin: auto;
         width: 100%;
+    }
+    @media screen and (max-width: 600px){
+        .form-container{
+            width: 98%;
+            max-width: none;
+            padding: 20px;
+        }  
     }
 </style>
 

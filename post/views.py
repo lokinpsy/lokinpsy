@@ -113,4 +113,3 @@ def disclaimer(request):
 
 def tnc(request):
     return render(request, 'tnc.html')
-        
