@@ -241,6 +241,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <label for="semail" class="form-label text-light">Enter your Email</label>
             <input style="font-size: larger; font-weight: bold;" type="text" class="form-control text-white bg-transparent" name="semail" id="semail" required></input>
           </div>
+          <input type="hidden" name="type" value="sub">
           <div class="d-flex justify-content-center">
             <button id="otpbtn" type="submit" class="btn btn-outline-light text-center mt-2"><b>Verify Email</b></button>
           </div>
@@ -258,8 +259,6 @@ document.addEventListener('DOMContentLoaded', function() {
         </form>
         <div class="text-center mt-2" style="color: aliceblue;" id="otpmsg"></div>
         <div class="loader" id="loader" hidden></div>
-
-
       </div>
     </div>
 

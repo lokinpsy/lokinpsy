@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}Unsubscribe{% endblock title %}
+{% block body %}
+
+<style>
+    @media screen and (max-width: 600px) {
+        .sub-container{
+            width: 100%;
+            max-width: none;
+            padding: 24px;
+        }
+        #subForm{
+            padding: 24px;
+        } 
+    }
+
+    body{
+        background-color: rgb(65, 67, 68);
+    }
+
+    .sub-container{
+        margin: auto;
+        width: 85%;
+        padding: 2%;
+        outline: 0.1em solid rgb(9, 64, 91);
+        border-radius: 12px;
+        box-shadow: 1px 1px 24px rgb(0, 0, 0);
+        background-color: rgb(9, 64, 91);
+        max-width: 500px;
+        padding: 2.3%;
+    }
+
+    .subcon{
+      background-color: rgb(65, 67, 68);
+      height: auto;
+    }
+
+    #subForm{
+        padding: 24px;
+    }
+
+    #loader {
+        border: 2px solid #f3f3f3; /* Light grey */
+        border-top: 2px solid #3498db; /* Blue */
+        border-radius: 50%;
+        width: 12px;
+        height: 12px;
+        animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const subForm = document.getElementById('subForm');
+        const messageDiv = document.getElementById('otpmsg');
+        const otpform = document.getElementById('otp-form');
+        const subcon = document.getElementById('sub-container');
+        const loader = document.getElementById('loader');
+    
+        subForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+    
+            const formData = new FormData(subForm);
+            messageDiv.textContent = 'Sending OTP';
+            loader.hidden = false;
+    
+            subcon.style.backgroundColor = 'rgb(9, 64, 91)'
+    
+            fetch("{% url 'sotp' %}", {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.message == "OTP sent successfully") {
+                    messageDiv.textContent = data.message;
+                    subForm.hidden = true;
+                    otpform.hidden = false;
+                    loader.hidden = true;
+              } else {
+                messageDiv.textContent = "Email not subscribed";
+                subcon.style.backgroundColor = '#FF6961';
+                loader.hidden = true;
+              }
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
+        });
+    });
+</script>
+
+<div id="subcon" class="subcon mb-5">
+    <div class="mb-5" style="padding-top: 35px; margin-bottom: 25px;">
+      <h1 class='text-light text-center mb-2 mt-5'> Unsubscribe</h1>
+      <p class="text-center text-secondary mb-5"><strong>Caution: </strong>You won't receive any furthur updates. <span>Fill this form to improve our services and content.</span></p>
+    </div>
+    <div class="sub-container mt-4" id='sub-container'>
+      <form id="subForm" method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="semail" class="form-label text-light">Enter your Email</label>
+          <input style="font-size: larger; font-weight: bold;" type="text" class="form-control text-white bg-transparent" name="semail" id="semail" required></input>
+        </div>
+        <input type="hidden" name="type" value="unsub">
+        <div class="d-flex justify-content-center">
+            <button id="otpbtn" type="submit" class="btn btn-outline-light text-center mt-2"><b>Verify Email</b></button>
+        </div>
+      </form>
+      <!-- OTP Form -->
+      <form id="otp-form" action="{% url 'unsub' %}" method="post" hidden>
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="sersn" class="form-label text-light">Reason for Unsubscribing</label>
+            <select class="form-control text-white bg-transparent" name="sersn" id="sersn" required>
+                <option class="text-secondary bg-dark" value="" disabled selected>-- Select a reason --</option>
+                <option class="text-bg-dark" value="1">Bad Content</option>
+                <option class="text-bg-dark" value="2">Not enough posts</option>
+            </select>     
+        </div>
+        <div class="mb-3">
+            <label for="exampleFormControlTextarea1" class="form-label text-light">Message (optional)</label>
+            <textarea class="form-control text-white bg-transparent" name="sersnmsg" id="sersnmsg" rows="3" required></textarea>
+        </div>
+        <div class="mb-3">
+          <label for="sotp" class="form-label text-light">Enter OTP</label>
+          <input style="font-size: larger; font-weight: bold;" type="text" class="form-control text-white bg-transparent" name="sotp" id="sotp" required></input>
+        </div>
+        <div class="d-flex justify-content-center">
+          <button id="subbtn" type="submit" class="btn btn-outline-danger text-center mt-2"><b>Unsubscribe</b></button>
+        </div>
+      </form>
+      <div class="text-center mt-2" style="color: aliceblue;" id="otpmsg"></div>
+      <div class="loader" id="loader" hidden></div>
+    </div>
+</div>
+{% endblock body %}

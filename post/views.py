@@ -49,35 +49,30 @@ def contact(request):
         return redirect('contact')
     return render(request, 'contact.html')
 
-# 4. Subscribe
         
 def sotp(request):
     if request.method == "POST":
         global otp, gsemail
+        type = request.POST.get('type')
+        print(type)
         otp = random.randint(100000,999999)
         gsemail = request.POST.get('semail')
-        if models.Subscriber.objects.filter(email = gsemail).exists():
-            return JsonResponse({'message':'Email already used'})
+        if type=='sub':
+            if models.Subscriber.objects.filter(email = gsemail).exists():
+                return JsonResponse({'message':'Email already used'})
+            else:
+                emsg = f'Hey there\nYour OTP for email verification is {otp}\nEnter OTP in the correct input box and subscribe.\n\nTeam Lokin Psy'
+                helper.sub_mail('Email Verification', emsg,gsemail)
+                return JsonResponse({'message':'OTP sent successfully'})
+        elif type=='unsub':
+            if models.Subscriber.objects.filter(email=gsemail).exists():
+                emsg = f'Hey there\nYour OTP for email verification is {otp}\nEnter OTP in the correct input box to procced for unsubscription.\n\nTeam Lokin Psy'
+                helper.sub_mail('Email Verification', emsg,gsemail)
+                return JsonResponse({'message':'OTP sent successfully'})
+            else:
+                return JsonResponse({'message':'Email no subscribed'})
         else:
-            emsg = f'Hey there\nYour OTP for email verification is {otp}\nEnter OTP in the correct input box and subscribe.\n\nTeam Lokin Psy'
-            helper.sub_mail('Email Verification', emsg,gsemail)
-            return JsonResponse({'message':'OTP sent successfully'})
-    else:
-        return redirect('home')
-
-def subscribe(request):
-    if request.method == "POST":
-        sotp = request.POST.get('sotp')
-        if int(sotp) == int(otp):
-            subscriber = models.Subscriber()
-            subscriber.email = gsemail
-            subscriber.save()
-            messages.success(request, "Subscription added successfully.")
-            emsg = f'Hurray,\nYour subscription has been added\nGet email notification for every post added and stay learning.\n\nTeam Lokin Psy'
-            helper.sub_mail('Subscription Added', emsg,gsemail)
             return redirect('home')
-        else:
-            return JsonResponse({'message':'Incorrect OTP entered'})
     else:
         return redirect('home')
         
@@ -113,3 +108,42 @@ def disclaimer(request):
 
 def tnc(request):
     return render(request, 'tnc.html')
+
+# 4. Subscribe
+def subscribe(request):
+    if request.method == "POST":
+        sotp = request.POST.get('sotp')
+        if int(sotp) == int(otp):
+            subscriber = models.Subscriber()
+            subscriber.email = gsemail
+            subscriber.save()
+            messages.success(request, "Subscription added successfully.")
+            emsg = f'Hurray,\nYour subscription has been added\nGet email notification for every post added and stay learning.\n\nTeam Lokin Psy'
+            helper.sub_mail('Subscription Added', emsg,gsemail)
+            return redirect('home')
+        else:
+            return JsonResponse({'message':'Incorrect OTP entered'})
+    else:
+        return redirect('home')
+
+def unsub(request):
+    if request.method == "POST":
+        unsubotp = int(request.POST.get('sotp'))
+        print(unsubotp)
+        if unsubotp == int(otp):
+            unsubrsn = request.POST.get('sersn')
+            unsubmsg = request.POST.get('sersnmsg')
+            unsubscriber = models.UnSubUser()
+            unsubscriber.email = gsemail
+            unsubscriber.reason = unsubrsn
+            unsubscriber.message = unsubmsg
+            subscriber = models.Subscriber.objects.get(email = gsemail)
+            subscriber.delete()
+            unsubscriber.save()
+            messages.success(request, "Unsubscription successfull")
+            emsg = f"Hurray,\nYour subscription has been removed\nYou won't receive new updates, news and posts.\n\nTeam Lokin Psy"
+            helper.sub_mail('Subscription Removed', emsg,gsemail)
+            return render(request,'unsub.html')
+        else:
+            return JsonResponse({'message':'Incorrect OTP entered'})
+    return render(request, 'unsub.html')

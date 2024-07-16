@@ -13,4 +13,5 @@ urlpatterns = [
     path('disclaimer', views.disclaimer, name='disclaimer'),
     path('tnc', views.tnc, name='tnc'),
     path('sotp', views.sotp, name='sotp'),
+    path('unsub',views.unsub, name='unsub'),
 ]

@@ -91,3 +91,16 @@ def send_email_to_subscribers(sender, instance, created, **kwargs):
         # Send the email to each subscriber
         for subscriber in subscribers:
             send_mail(subject, message, 'lokinpsy@gmail.com', [subscriber.email])
+
+
+class UnSubUser(models.Model):
+    email = models.EmailField(null=False)
+    reason = models.CharField(null=False, max_length=250)
+    message = models.TextField(default='not provided')
+    unsub_date = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return self.email
+    
+    class Meta:
+        ordering = ['-unsub_date']
