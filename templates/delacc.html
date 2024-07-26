@@ -1,6 +1,7 @@
 {% extends "base.html" %}
-{% block title %}Unsubscribe{% endblock title %}
+{% block title %}Delete Account{% endblock title %}
 {% block body %}
+{% load static %}
 
 <style>
     @media screen and (max-width: 600px) {
@@ -11,11 +12,7 @@
         }
         #subForm{
             padding: 24px;
-        } 
-    }
-
-    body{
-        background-color: rgb(65, 67, 68);
+        }
     }
 
     .sub-container{
@@ -28,11 +25,6 @@
         background-color: rgb(9, 64, 91);
         max-width: 500px;
         padding: 2.3%;
-    }
-
-    .subcon{
-      background-color: rgb(65, 67, 68);
-      height: auto;
     }
 
     #subForm{
@@ -55,51 +47,38 @@
 
 </style>
 
+<script src="{% static 'sotp.js' %}"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const subForm = document.getElementById('subForm');
-        const messageDiv = document.getElementById('otpmsg');
-        const otpform = document.getElementById('otp-form');
-        const subcon = document.getElementById('sub-container');
-        const loader = document.getElementById('loader');
-    
-        subForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-    
-            const formData = new FormData(subForm);
-            messageDiv.textContent = 'Sending OTP';
-            loader.hidden = false;
-    
-            subcon.style.backgroundColor = 'rgb(9, 64, 91)'
-    
-            fetch("{% url 'sotp' %}", {
-                method: 'POST',
-                body: formData,
-            })
-            .then(response => response.json())
-            .then(data => {
-              if (data.message == "OTP sent successfully") {
-                    messageDiv.textContent = data.message;
-                    subForm.hidden = true;
-                    otpform.hidden = false;
-                    loader.hidden = true;
-              } else {
-                messageDiv.textContent = "Email not subscribed";
-                subcon.style.backgroundColor = '#FF6961';
-                loader.hidden = true;
-              }
-            })
-            .catch(error => {
-                console.error('Error fetching data:', error);
-            });
+    document.addEventListener('DOMContentLoaded', function() { 
+    const signform = document.getElementById("otp-form");
+    signform.addEventListener('submit',function(e){
+        e.preventDefault();
+        const formdata = new FormData(signform);
+        fetch("{% url 'del_acc' %}",{
+            method: 'POST',
+            body: formdata,
+        })
+        .then(response => response.json())
+        .then(redata => {
+            if (redata.message == "success"){
+                window.location.replace("{% url 'home'%}");
+                }
+                else{
+                const dmsg = document.getElementById('rmsg');
+                dmsg.textContent = redata.message;
+                }
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
         });
     });
+});
 </script>
 
 <div id="subcon" class="subcon mb-5">
     <div class="mb-5" style="padding-top: 35px; margin-bottom: 25px;">
-      <h1 class='text-light text-center mb-2 mt-5'> Unsubscribe</h1>
-      <p class="text-center text-secondary mb-5"><strong>Caution: </strong>You won't receive any furthur updates. <span>Fill this form to improve our services and content.</span></p>
+      <h1 class='text-danger text-center mb-2 mt-5'> <strong>Delete Account</strong></h1>
+      <p class="text-center text-secondary mb-5"><strong>Caution: </strong>You won't receive any furthur updates. All of your data will be deleted</p>
     </div>
     <div class="sub-container mt-4" id='sub-container'>
       <form id="subForm" method="post">
@@ -108,26 +87,30 @@
           <label for="semail" class="form-label text-light">Enter your Email</label>
           <input style="font-size: larger; font-weight: bold;" type="text" class="form-control text-white bg-transparent" name="semail" id="semail" required></input>
         </div>
-        <input type="hidden" name="type" value="unsub">
+        <input type="hidden" name="type" value="delacc">
         <div class="d-flex justify-content-center">
             <button id="otpbtn" type="submit" class="btn btn-outline-light text-center mt-2"><b>Verify Email</b></button>
         </div>
       </form>
       <!-- OTP Form -->
-      <form id="otp-form" action="{% url 'unsub' %}" method="post" hidden>
+      <form id="otp-form" method="post" hidden>
         {% csrf_token %}
         <div class="mb-3">
             <label for="sersn" class="form-label text-light">Reason for Unsubscribing</label>
             <select class="form-control text-white bg-transparent" name="sersn" id="sersn" required>
                 <option class="text-secondary bg-dark" value="" disabled selected>-- Select a reason --</option>
-                <option class="text-bg-dark" value="1">Bad Content</option>
-                <option class="text-bg-dark" value="2">Not enough posts</option>
-            </select>     
+                <option class="text-bg-dark" value="Bad Content">Bad Content</option>
+                <option class="text-bg-dark" value="Not enough post">Not enough posts</option>
+            </select>
         </div>
         <div class="mb-3">
             <label for="exampleFormControlTextarea1" class="form-label text-light">Message (optional)</label>
             <textarea class="form-control text-white bg-transparent" name="sersnmsg" id="sersnmsg" rows="3" required></textarea>
         </div>
+        <div class="mb-3">
+            <label for="sotp" class="form-label text-light">Enter Password</label>
+            <input style="font-size: larger; font-weight: bold;" type="password" class="form-control text-white bg-transparent" name="password" id="password" required></input>
+          </div>
         <div class="mb-3">
           <label for="sotp" class="form-label text-light">Enter OTP</label>
           <input style="font-size: larger; font-weight: bold;" type="text" class="form-control text-white bg-transparent" name="sotp" id="sotp" required></input>
@@ -136,6 +119,7 @@
           <button id="subbtn" type="submit" class="btn btn-outline-danger text-center mt-2"><b>Unsubscribe</b></button>
         </div>
       </form>
+      <div class="text-center mt-2" style="color:#FF6961" id="rmsg"></div>
       <div class="text-center mt-2" style="color: aliceblue;" id="otpmsg"></div>
       <div class="loader" id="loader" hidden></div>
     </div>

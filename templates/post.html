@@ -3,18 +3,186 @@
 {% block title  %} {{post.title}}{% endblock title  %}
 {% block body %}
 
-<figure class="container-blog" style="position: relative;background-image: url('{{ post.images.url }}');background-size: cover;background-position: center;background-repeat: no-repeat;height: 700px;display: flex;flex-direction: column;justify-content: center;align-items: center;text-align: center;">
-    <div class="overlay" style="position: absolute;top: 0;left: 0;width: 100%;height: 100%;background-color: rgba(0, 0, 0, 0.5);">
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const likebtn = document.getElementById('likebtn');
+    const likesvg = document.getElementById('likesvg');
+    const post_id = likebtn.value;
+    likebtn.addEventListener('click', likefunc)
+
+    const savebtn = document.getElementById('savebtn');
+    const savesvg = document.getElementById('savesvg');
+    savebtn.addEventListener('click',savefunc)
+
+    const sharebtn = document.getElementById('sharebtn');
+    sharebtn.addEventListener('click',sharefunc)
+
+    const dialog = document.getElementById('myDialog');
+    const closeButton = document.getElementById('closeDialog');
+    closeButton.addEventListener('click', () => {
+        dialog.close();
+    });
+
+    function likefunc(e){
+        e.preventDefault();
+        fetch("{% url 'post_like' %}",{
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: JSON.stringify({post_id:post_id})
+        })
+        .then(response=>{
+            if(!response.ok){
+                console.error('error')
+            }
+            return response.json()
+        })
+        .then(data=>{
+            if(data.liked){
+                likesvg.style.color = '#ff4e45';
+                likesvg.style.stroke = '#ff4e45';
+            }
+            else if(data.error){
+                document.getElementById('dh').textContent = "Liked this post ?"
+                document.getElementById('dp').textContent = "Signin to let people know"
+                dialog.showModal();
+            }
+            else{
+                likesvg.style.stroke = 'white';
+                likesvg.style.color = 'transparent';
+            }
+            document.getElementById('likes-count').textContent = data.likes_count
+        })
+        .catch(error => console.error(error))
+    }
+
+    function savefunc(e){
+        e.preventDefault();
+        fetch("{% url 'post_save' %}",{
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: JSON.stringify({post_id:post_id})
+        })
+        .then(response=>{
+            if(!response.ok){
+                console.error('error')
+            }
+            return response.json()
+        })
+        .then(data=>{
+            if(data.saved){
+                savesvg.style.color= 'white';
+            }
+            else if(data.error){
+                document.getElementById('dh').textContent = "Save this post ?"
+                document.getElementById('dp').textContent = "Signin to save and read later"
+                dialog.showModal();
+            }
+            else{
+                savesvg.style.color= 'transparent';
+            }
+        })
+        .catch(error => console.error(error))
+    }
+
+    function sharefunc(){
+        if (navigator.share){
+            const shareData ={
+                title: 'Check this out',
+                text: '{{post.title}}',
+                url: window.location.href,
+            };
+            navigator.share(shareData)
+            .then()
+            .catch(error => console.error)
+        }
+    }
+
+    });
+</script>
+
+<style>
+    body{
+        background-color: #333333;
+        color: #e5e5e5;
+    }
+    
+    dialog {
+            width: 40%;
+            padding: 20px;
+            background-color: #1b1b1b;
+            border: 1px solid #000000;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 1);
+            height: 210px;
+    }
+</style>
+<dialog id="myDialog">
+    <button id="closeDialog" class="btn btn-outline dark text-danger"><i class="bi bi-x-lg"></i></button>
+    <h5 class="text-center text-light" id="dh"></h5>
+    <p class="text-secondary" id="dp"></p>
+    <button class="btn btn-outline-primary"><a href='{% url "signin" %}' class="text-light">Sign in</a></button>
+    <div class="card-footer">
     </div>
-    <h1 style="font-size: 300%;color:aliceblue; z-index: 2;">{{ post.title }}</h1>
+</dialog>
+<figure class="container-blog" style="position: relative;background-image: url('{{ post.images.url }}');background-size: cover;background-position: center;background-repeat: no-repeat;height: 700px;display: flex;flex-direction: column;justify-content: center;align-items: center;text-align: center;">
+    <div class="overlay" style="position: absolute;top: 0;left: 0;width: 100%;height: 100%;background-color: rgba(0, 0, 0, 0.7);">
+    </div>
+    <h1 style="font-size: 300%;color:rgb(255, 255, 255); z-index: 2;">{{ post.title }}</h1>
     <small style="color: #f2f2f2; z-index: 2;"><strong>{{ post.pub_date.date }}</strong></small>
     <small style="color: #f2f2f2; z-index: 2;"><strong>Post no. {{ post.id }}</strong></small>
 </figure>
-<br><br>
-<div class="container">
+<br>
+<div class="mx-auto" style="width: 350px;">
+    <ul class="list-group list-group-horizontal">
+        <li class="list-group-item bg-transparent">
+            <button id="sharebtn" class="btn btn-lg text-light">
+                <i class="bi bi-share-fill"></i>
+            </button>
+        </li>
+        <li class="list-group-item bg-transparent text-light">
+            <button id="likebtn" value="{{ post.id }}" class="btn btn-lg text-light">
+                {% if request.user in post.likes.all %}
+                    <svg id="likesvg" style="color: #ff4e45; stroke:#ff4e45;" xmlns="http://www.w3.org/2000/svg" width="36" height="24" fill="currentColor" class="bi bi-heart-fill" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
+                    </svg>
+                </button>
+                {% else %}
+                    <svg id="likesvg" style="color:transparent; stroke:white;" xmlns="http://www.w3.org/2000/svg" width="36" height="24" fill="currentColor" class="bi bi-heart-fill" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
+                    </svg>
+                </button>
+            {% endif %}
+            </button>
+            <span id="likes-count">{{ post.likes.count }}</span>
+
+        </li>
+        <li class="list-group-item bg-transparent">
+            <button id="savebtn" value="{{post.id}}" class="btn btn-lg text-light">
+                {% if request.user in post.saves.all %}
+                    <svg id="savesvg" style="color:white; stroke:white;" xmlns="http://www.w3.org/2000/svg" width="36" height="24" fill="currentColor" class="bi bi-bookmark-fill" viewBox="0 0 16 16">
+                        <path d="M2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2"/>
+                    </svg>
+                    </button>
+                {% else %}
+                    <svg id="savesvg" style="color:transparent;stroke:white;" xmlns="http://www.w3.org/2000/svg" width="36" height="24" fill="currentColor" class="bi bi-bookmark-fill" viewBox="0 0 16 16">
+                        <path d="M2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2"/>
+                    </svg>
+                    </button>
+                {% endif %}
+                </button>
+        </li>
+    </ul>
+</div>
+<br>
+<div class="container mt-5 mb-5">
     {{ post.content|safe }}
 </div>
-
 <!-- Related Post -->
 
 {% endblock %}

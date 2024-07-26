@@ -3,7 +3,7 @@
 {% block body %}
 <div class="container">
     {% if results %}
-        <h5 class="h5 text-white text-center mt-3 mb-3">Search results for "{{query}}"</h5>
+        <h5 class="h5 text-white text-center mt-5 mb-3">Search results for <strong>"{{query}}"</strong></h5>
         <br>
         {% for post in results %}
             {% if forloop.counter0|divisibleby:3 %}
@@ -11,40 +11,42 @@
             {% endif %}
             <div class="col">
             <a style="text-decoration: none;" href="{% url 'post' post.id %}">
-                <div id="postcol" class="card h-100 text-bg-dark">
-                <img src="{{ post.images.url }}" class="card-img-top" style="height: 300px" alt="...">
-                <div class="card-body">
-                    <h5 class="card-title">{{ post.title }}</h5>
-                    <p class="card-text">{{ post.intro }}</p>
-                    <p class="card-text">{{ post.category }}</p>
-                </div>
-                <div class="card-footer">
-                    <small class="text-body-secondary-dark">Published on {{ post.pub_date.date }}</small>
-                </div>
-                </div>
+                <div id="postcol" class="card h-100 textlight bg-dark">
+                    <img src="{{ post.images.url }}" class="card-img-top" style="height: 300px" alt="...">
+                    <div class="card-body">
+                      <h1 class="card-title text-light">{{ post.title }}</h1>
+                      <p class="card-text text-light mt-4">{{ post.intro }}</p>
+                      <div class="card-footer">
+                        <p class="card-text text-secondary mt-1">{{ post.category }}</p>
+                      </div>
+                    </div>
+                    <div class="card-footer">
+                      <small class="text-secondary bg-dark">Published on {{ post.pub_date.date }}</small>
+                    </div>
+                  </div>
             </a>
             </div>
             {% if forloop.counter0|add:1|divisibleby:3 or forloop.last %}
             </div>
             {% endif %}
         {% endfor %}
+        <nav aria-label="Page navigation example" style="text-align: center;">
+            <ul class="pagination justify-content-center">
+                {% if results.has_previous %}
+                    <li class="page-item"><a class="page-link bg-dark text-white" href="?page=1">First</a></li>
+                    <li class="page-item"><a class="page-link bg-dark text-white" href="?page={{results.previous_page_number}}">Previous</a></li>
+                {% endif%}
+                <li class="page-item"><a class="page-link bg-dark text-white">{{results.number}}</a></li>
+                {% if results.has_next %}
+                    <li class="page-item"><a class="page-link bg-dark text-white" href="?page={{results.next_page_number}}">Next</a></li>
+                    <li class="page-item"><a class="page-link bg-dark text-white" href="?page={{results.paginator.num_pages}}">Last</a></li>
+                {% endif%}
+              </ul>
+          </nav>
     {%else%}
         <h5 class="h5 text-white text-center mt-3 mb-3">No result found for "{{query}}"</h5>
     {% endif %}
     <hr>
-    <nav aria-label="Page navigation example" style="text-align: center;">
-      <ul class="pagination justify-content-center">
-          {% if results.has_previous %}
-              <li class="page-item"><a class="page-link bg-dark text-white" href="?page=1">First</a></li>
-              <li class="page-item"><a class="page-link bg-dark text-white" href="?page={{results.previous_page_number}}">Previous</a></li>
-          {% endif%}
-          <li class="page-item"><a class="page-link bg-dark text-white">{{results.number}}</a></li>
-          {% if results.has_next %}
-              <li class="page-item"><a class="page-link bg-dark text-white" href="?page={{results.next_page_number}}">Next</a></li>
-              <li class="page-item"><a class="page-link bg-dark text-white" href="?page={{results.paginator.num_pages}}">Last</a></li>
-          {% endif%}
-        </ul>
-    </nav>
 </div>
 
 {% endblock%}

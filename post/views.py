@@ -5,6 +5,9 @@ from . import helper
 from django.contrib import messages
 from django.db.models import Q
 import random
+from django.contrib.auth.models import User
+from django.contrib.auth import login, logout
+import json
 
 # 1. Index page / Home page
 def index(request):
@@ -54,23 +57,30 @@ def sotp(request):
     if request.method == "POST":
         global otp, gsemail
         type = request.POST.get('type')
-        print(type)
         otp = random.randint(100000,999999)
         gsemail = request.POST.get('semail')
-        if type=='sub':
-            if models.Subscriber.objects.filter(email = gsemail).exists():
+        if type=="signup":
+            if User.objects.filter(email=gsemail).exists():
                 return JsonResponse({'message':'Email already used'})
             else:
-                emsg = f'Hey there\nYour OTP for email verification is {otp}\nEnter OTP in the correct input box and subscribe.\n\nTeam Lokin Psy'
+                emsg = f'Hey there\nYour OTP for email verification is {otp}\nEnter OTP in the correct input box and signup.\n\nTeam Lokin Psy'
                 helper.sub_mail('Email Verification', emsg,gsemail)
                 return JsonResponse({'message':'OTP sent successfully'})
-        elif type=='unsub':
-            if models.Subscriber.objects.filter(email=gsemail).exists():
-                emsg = f'Hey there\nYour OTP for email verification is {otp}\nEnter OTP in the correct input box to procced for unsubscription.\n\nTeam Lokin Psy'
+        
+        elif type == "fp":
+            if User.objects.filter(email=gsemail).exists():
+                emsg = f'Hey there\nYour OTP for email verification is {otp}\nEnter OTP in the correct input box and change password.\n\nTeam Lokin Psy'
                 helper.sub_mail('Email Verification', emsg,gsemail)
                 return JsonResponse({'message':'OTP sent successfully'})
             else:
-                return JsonResponse({'message':'Email no subscribed'})
+                return JsonResponse({'message':'Email not registered'})
+        elif type == "delacc":
+            if User.objects.filter(email = gsemail).exists():
+                emsg = f'Hey there\nYour OTP for email verification is {otp} for deleting your account\nEnter OTP in the correct input box and continue.\n\nTeam Lokin Psy'
+                helper.sub_mail('Email Verification', emsg,gsemail)
+                return JsonResponse({'message':'OTP sent successfully'})
+            else:
+                return JsonResponse({'message':'Email not registered'})
         else:
             return redirect('home')
     else:
@@ -109,41 +119,182 @@ def disclaimer(request):
 def tnc(request):
     return render(request, 'tnc.html')
 
-# 4. Subscribe
-def subscribe(request):
+def signup(request):
     if request.method == "POST":
-        sotp = request.POST.get('sotp')
-        if int(sotp) == int(otp):
-            subscriber = models.Subscriber()
-            subscriber.email = gsemail
-            subscriber.save()
-            messages.success(request, "Subscription added successfully.")
-            emsg = f'Hurray,\nYour subscription has been added\nGet email notification for every post added and stay learning.\n\nTeam Lokin Psy'
-            helper.sub_mail('Subscription Added', emsg,gsemail)
+        signotp = int(request.POST.get('sotp'))
+        nuser = request.POST.get('username')
+        nuser = nuser.lower()
+        if User.objects.filter(username = nuser).exists():
+            return JsonResponse({"msg":"Username already taken"})
+        else:           
+            if int(otp) == signotp:
+                user = User()
+
+                if models.DelUser.objects.filter(email = gsemail):
+                    user.first_name = "renew_user"
+                    preuser = models.DelUser.objects.get(email = gsemail)
+                    preuser.delete()
+                else:
+                    user.first_name = "new_user"
+
+                user.username = nuser
+                user.email = gsemail
+                user.password = request.POST.get('password')
+                user.save()
+                messages.success(request,'Singup successfully')
+                login(request, user)
+                return JsonResponse({"msg":"successfull"})
+            else:
+                return JsonResponse({"msg":"OTP is incorrect"})
+    return render(request,'signup.html')
+
+
+def signin(request):
+    if request.method == "POST":
+        password = request.POST.get('password')
+        username_or_email = request.POST.get('username')
+
+        try:
+            user = User.objects.get(username=username_or_email)
+        except User.DoesNotExist:
+            try:
+                user = User.objects.get(email=username_or_email)
+            except User.DoesNotExist:
+                messages.info(request, 'User does not exist')
+                return render(request, 'login.html')
+
+        if user.password == password:
+            login(request, user)
             return redirect('home')
         else:
-            return JsonResponse({'message':'Incorrect OTP entered'})
-    else:
-        return redirect('home')
+            messages.info(request, 'Password is incorrect')
+            return render(request, 'login.html')
 
-def unsub(request):
+    return render(request, 'login.html')
+
+
+def fp(request):
+    if request.method == "POST":
+        sotp = int(request.POST.get('sotp'))
+        if int(otp) == sotp:
+            user = User.objects.get(email= gsemail)
+            user.password = request.POST.get('npass')
+            user.save()
+            messages.info(request,'Password changes successfully')
+            login(request,user)
+            return JsonResponse({"msg":"successfull"})
+        else:
+            return JsonResponse({"msg":"OTP is incorrect"})
+        
+    return render(request, 'fp.html')
+
+def signout(request):
+    logout(request)
+    messages.success(request,'Signout successfully')
+    return redirect('home')
+
+
+def me(request):
+    data = request.user
+    if data.is_authenticated: 
+        like_post = models.Post.objects.filter(likes = data)               
+        save_post = models.Post.objects.filter(saves = data)               
+        user = {"data":data}
+        return render(request, 'me.html', user)
+    else:
+        return redirect('signin')
+
+def chu(request):
+    if request.method == "POST":
+        nusername = request.POST.get('nusername')
+        user = request.user
+        if nusername != user.username:
+            if User.objects.filter(username=nusername).exists():
+                return JsonResponse({"msg":"Username already taken"})
+            else:
+                user.username = nusername
+                user.save()
+                messages.success(request,"username changed successfully")
+                return JsonResponse({"msg":"success"})
+        return JsonResponse({"msg":"success"})
+
+
+def like(request):
+    if request.method == "POST":
+        data = json.loads(request.body.decode('utf-8'))
+        post_id = int(data.get('post_id'))
+        post = get_object_or_404(models.Post, id=post_id)
+        user = request.user
+        if user.is_authenticated:
+            if request.user in post.likes.all():
+                post.likes.remove(request.user)
+                liked = False
+            else:
+                post.likes.add(request.user)
+                liked = True
+            return JsonResponse({'liked': liked, 'likes_count': post.likes.count()})
+        else:
+            return JsonResponse({'error':True, 'likes_count': post.likes.count()})
+
+def save(request):
+    if request.method == "POST":
+        data = json.loads(request.body.decode('utf-8'))
+        post_id = int(data.get('post_id'))
+        post = get_object_or_404(models.Post, id=post_id)
+        user = request.user
+        if user.is_authenticated:
+            if request.user in post.saves.all():
+                post.saves.remove(request.user)
+                saved = False
+            else:
+                post.saves.add(request.user)
+                saved = True
+            return JsonResponse({'saved': saved})
+        else:
+            return JsonResponse({'error':True})
+        
+def likedpost(request):
+    user = request.user
+    if user.is_authenticated:
+        posts = models.Post.objects.filter(likes = user)
+        page = helper.cus_paginator(request,posts,10)
+        context = {'posts':page}
+        return render(request, 'likepost.html', context)
+    return redirect('signin')
+
+def savedpost(request):
+    user = request.user
+    if user.is_authenticated:
+        posts = models.Post.objects.filter(saves = user)
+        page = helper.cus_paginator(request,posts,10)
+        context = {'posts':page}
+        return render(request, 'savedpost.html', context)
+    return redirect('signin')
+
+def del_acc(request):
     if request.method == "POST":
         unsubotp = int(request.POST.get('sotp'))
-        print(unsubotp)
+        password = request.POST.get('password')
         if unsubotp == int(otp):
-            unsubrsn = request.POST.get('sersn')
-            unsubmsg = request.POST.get('sersnmsg')
-            unsubscriber = models.UnSubUser()
-            unsubscriber.email = gsemail
-            unsubscriber.reason = unsubrsn
-            unsubscriber.message = unsubmsg
-            subscriber = models.Subscriber.objects.get(email = gsemail)
-            subscriber.delete()
-            unsubscriber.save()
-            messages.success(request, "Unsubscription successfull")
-            emsg = f"Hurray,\nYour subscription has been removed\nYou won't receive new updates, news and posts.\n\nTeam Lokin Psy"
-            helper.sub_mail('Subscription Removed', emsg,gsemail)
-            return render(request,'unsub.html')
+            if User.objects.get(email = gsemail).password == password:
+                unsubrsn = request.POST.get('sersn')
+                unsubmsg = request.POST.get('sersnmsg')
+                unsubscriber = models.DelUser()
+                unsubscriber.email = gsemail
+                unsubscriber.reason = unsubrsn
+                unsubscriber.message = unsubmsg
+                user = models.User.objects.get(email = gsemail)
+                user.delete()
+                unsubscriber.save()
+                messages.success(request, "Account Deleted")
+                emsg = f"Hey,\nYour account has been deleted.\nYou won't receive new updates, news and posts.\n\nTeam Lokin Psy"
+                helper.sub_mail('Account Deleted', emsg, gsemail)
+                return JsonResponse({'message':'success'})
+            else:
+                return JsonResponse({'message':'Incorrect Password'})
         else:
             return JsonResponse({'message':'Incorrect OTP entered'})
-    return render(request, 'unsub.html')
+    if request.user.is_authenticated:
+        return render(request,'delacc.html')
+    else:
+        return redirect('signin')

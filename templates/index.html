@@ -5,261 +5,224 @@
 <title>{%block title%}Home{%endblock%}</title>
 
 {%block body%}
+<script src="{% static 'sotp.js' %}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+  const passwordInput = document.getElementById("password");
+  const requirements = document.getElementById("message");
+  const submitButton = document.getElementById("subbtn"); 
+
+  passwordInput.addEventListener("input", function () {
+      const valid = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/.test(passwordInput.value);
+      requirements.querySelectorAll("p").forEach((el) => {
+          el.classList.toggle("valid", valid);
+          el.classList.toggle("invalid", !valid);
+      });
+  });
+
+  const usernameInput = document.getElementById("username");
+  const validationResult = document.getElementById("validationResult");
+
+  usernameInput.addEventListener("input", function () {
+      const valid = /^[a-zA-Z0-9_]+$/.test(usernameInput.value);
+      validationResult.textContent = valid ? "" : "Invalid username. Only letters, numbers, and underscores are allowed.";
+      validationResult.style.color = valid ? "#FF6961" : "#FF6961";
+      submitButton.disabled = !valid;
+  });
+
+
+  const signform = document.getElementById("otp-form");
+  signform.addEventListener('submit',function(e){
+      e.preventDefault();
+      const formdata = new FormData(signform);
+      fetch("{% url 'signup' %}",{
+          method: 'POST',
+          body: formdata,
+      })
+      .then(response => response.json())
+      .then(redata => {
+          if (redata.msg == "successfull"){
+              window.location.replace("{% url 'home'%}");
+            }
+            else{
+              const dmsg = document.getElementById('rmsg');
+              dmsg.textContent = redata.msg;
+            }
+      })
+      .catch(error => {
+          console.error('Error fetching data:', error);
+      });
+  });
+});
+</script>
 
 <style>
-    .container-bg {
-        background-color: rgb(9, 64, 91);
-        height: 500px;
-        z-index: -1;
-    }
+  .header {
+    background-color: rgb(9, 64, 91);
+    padding: 40px;
+    text-align: center;
+    height: 600px;
+  }
 
-    .name{
-      font-size: 64px;
-      color:white;
-      position: absolute;
-      top: 35%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 3;
-    }
+  #comname {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      margin-top: 20px;
+      color: white;
+  }
 
-    .tagline{
-      font-size: 20px;
-      color: rgb(202, 202, 202);
-      position: absolute;
-      top: 45%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 3;
-    }
+  #tagline {
+      font-size: 1.2rem;
+      color: #777;
+      margin-top: 10px;
+  }
 
-    #search-form {
-        position: relative;
-        margin-top: -100px;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 3;
-        max-width: 400px;
-    }
+  .search-container {
+      margin-bottom: 20px;
+      max-width: 500px;
+      margin-top: 100px;
+  }
 
-    @media screen and (max-width: 600px) {
-      .name {
-        font-size: 44px;
-        position: absolute;
-        top: 25%;
-        width: 100%;
-        text-align: center;
-      }
-      .tagline {
-        font-size: 12px;
-        position: absolute;
-        top:30%;
-        margin-top:10px;
-      }
-      #search-form{
-        position: relative;
-        margin-top: -100px;
-        width: 80%;
-      }
-      .container-bg{
-        height: 400px;
-      }
+  #searchquery {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      width: 70%;
+  }
 
-      .sub-container{
-        width: 100%;
-        max-width: none;
-        padding: 24px;
-      }
-      #subForm{
-        padding: 24px;
-      }
-    }
-
-    .post-container{
-        margin-top: -100px;
-        margin-left: 40px;
-        margin-right: 40px;
-        margin-bottom: 40px;
-    }
+  #searchbtn {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+  }
 
     #postcol{
       box-shadow: 1px 2px 3px 2px rgba(0, 0, 0, 0.5);
     }
-    .sub-container{
-        margin: auto;
-        width: 85%;
-        padding: 2%;
-        outline: 0.1em solid rgb(9, 64, 91);
-        border-radius: 12px;
-        box-shadow: 1px 1px 24px rgb(0, 0, 0);
-        background-color: rgb(9, 64, 91);
-        max-width: 500px;
-        padding: 2.3%;
-    }
 
     .subcon{
       background-color: rgb(65, 67, 68);
-      height: 500px;
     }
-
-    #subForm{
-        padding: 24px;
+    .subconb{
+      background-color: rgb(65, 67, 68);
+      height: 50px;
     }
-
-    #loader {
-        border: 2px solid #f3f3f3; /* Light grey */
-        border-top: 2px solid #3498db; /* Blue */
-        border-radius: 50%;
-        width: 12px;
-        height: 12px;
-        animation: spin 2s linear infinite;
-    }
-
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-
-
 </style>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const subForm = document.getElementById('subForm');
-    const messageDiv = document.getElementById('otpmsg');
-    const otpform = document.getElementById('otp-form');
-    const subcon = document.getElementById('sub-container');
-    const loader = document.getElementById('loader');
-
-    subForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        const formData = new FormData(subForm);
-        messageDiv.textContent = 'Sending OTP';
-        loader.hidden = false;
-
-        subcon.style.backgroundColor = 'rgb(9, 64, 91)'
-
-        fetch("{% url 'sotp' %}", {
-            method: 'POST',
-            body: formData,
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.message == "OTP sent successfully") {
-                messageDiv.textContent = data.message;
-                subForm.hidden = true;
-                otpform.hidden = false;
-                loader.hidden = true;
-          } else {
-            messageDiv.textContent = "Email already used";
-            subcon.style.backgroundColor = '#FF6961';
-            loader.hidden = true;
-          }
-        })
-        .catch(error => {
-            console.error('Error fetching data:', error);
-        });
-    });
-});
-
-</script>
-
 <body>
-    {% include "message.html" %}
-    <div class="container-bg">
-        <div class="overlay">
+    <header class="header">
+      <div class="main-con" style="margin-top: 150px;">
+        <h1 id="comname">Welcome to Lokin Psy</h1>
+        <p id="tagline">Psychology in a Nutshell</p>
+        <div class="search-container mx-auto">
+            <form id="search-form" action="search">
+                <input style="font-weight: bold;" type="text" placeholder="Search topic" name='searchquery' id='searchquery'>
+                <button type="submit" id="searchbtn">Search</button>
+            </form>
         </div>
-        <h1 class="name">Lokin Psy</h1>
-        <h5 class="tagline">Psychology in Nutshell</h5>
-    </div>
-    <!-- Search Section -->
-
-    <form action="search" id="search-form" class="row g-2">
-        <div class="d-grid gap-2">
-          <input style="font-weight: bold;" class="form-control form-control-lg" type="text" placeholder="Search topic" name='searchquery' id='searchquery'>
-        </div>
-        <div class="d-grid gap-2 col-3 mx-auto">
-          <button type="submit" class="btn btn-outline-light my-1 mb-2"><b>Search</b></button>
-        </div>
-      </form>
-
+      </div>
+    </header>
     <!-- Post section -->
     <div class="container">
-      {% for post in posts %}
-        {% if forloop.counter0|divisibleby:3 %}
-          <div class="row row-cols-1 row-cols-md-3 g-4 mt-5 mb-3">
-        {% endif %}
-        <div class="col">
-          <a style="text-decoration: none;" href="{% url 'post' post.id %}">
-            <div id="postcol" class="card h-100 text-bg-dark">
-              <img src="{{ post.images.url }}" class="card-img-top" style="height: 300px" alt="...">
-              <div class="card-body">
-                <h5 class="card-title">{{ post.title }}</h5>
-                <p class="card-text">{{ post.intro }}</p>
-                <p class="card-text">{{ post.category }}</p>
-              </div>
-              <div class="card-footer">
-                <small class="text-body-secondary-dark">Published on {{ post.pub_date.date }}</small>
-              </div>
+      {% if posts %}
+        {% for post in posts %}
+            {% if forloop.counter0|divisibleby:3 %}
+            <div class="row row-cols-1 row-cols-md-3 g-4 mt-5 mb-3">
+            {% endif %}
+            <div class="col">
+            <a style="text-decoration: none;" href="{% url 'post' post.id %}">
+                <div id="postcol" class="card h-100 textlight bg-dark">
+                <img src="{{ post.images.url }}" class="card-img-top" style="height: 300px" alt="...">
+                <div class="card-body">
+                    <h1 class="card-title text-light">{{ post.title }}</h1>
+                    <p class="card-text text-light mt-4">{{ post.intro }}</p>
+                    <div class="card-footer">
+                    <p class="card-text text-secondary mt-1">{{ post.category }}</p>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <small class="text-secondary bg-dark">Published on {{ post.pub_date.date }}</small>
+                </div>
+                </div>
+            </a>
             </div>
-          </a>
+            {% if forloop.counter0|add:1|divisibleby:3 or forloop.last %}
+            </div>
+            {% endif %}
+        {% endfor %}
         </div>
-        {% if forloop.counter0|add:1|divisibleby:3 or forloop.last %}
-          </div>
-        {% endif %}
-      {% endfor %}
+
+        <!-- Pagination -->
+        <hr>
+        <nav aria-label="Page navigation example" style="text-align: center;">
+        <ul class="pagination justify-content-center">
+            {% if posts.has_previous %}
+                <li class="page-item"><a class="page-link bg-dark text-white" href="?page=1">First</a></li>
+                <li class="page-item"><a class="page-link bg-dark text-white" href="?page={{posts.previous_page_number}}">Previous</a></li>
+            {% endif%}
+            <li class="page-item"><a class="page-link bg-dark text-white">{{posts.number}}</a></li>
+            {% if posts.has_next %}
+                <li class="page-item"><a class="page-link bg-dark text-white" href="?page={{posts.next_page_number}}">Next</a></li>
+                <li class="page-item"><a class="page-link bg-dark text-white" href="?page={{posts.paginator.num_pages}}">Last</a></li>
+            {% endif%}
+        </ul>
+        </nav>
+      {% else %}
+        <h5 class="text-light text-center my-5">No posts yet</h5>
+      {% endif %}
     </div>
-
-    <!-- Pagination -->
-    <hr>
-    <nav aria-label="Page navigation example" style="text-align: center;">
-      <ul class="pagination justify-content-center">
-          {% if posts.has_previous %}
-              <li class="page-item"><a class="page-link bg-dark text-white" href="?page=1">First</a></li>
-              <li class="page-item"><a class="page-link bg-dark text-white" href="?page={{posts.previous_page_number}}">Previous</a></li>
-          {% endif%}
-          <li class="page-item"><a class="page-link bg-dark text-white">{{posts.number}}</a></li>
-          {% if posts.has_next %}
-              <li class="page-item"><a class="page-link bg-dark text-white" href="?page={{posts.next_page_number}}">Next</a></li>
-              <li class="page-item"><a class="page-link bg-dark text-white" href="?page={{posts.paginator.num_pages}}">Last</a></li>
-          {% endif%}
-      </ul>
-    </nav>
-
     <!-- Subscribe for free -->
     <hr>
     <div id="subcon" class="subcon">
       <div class="mb-5" style="padding-top: 35px; margin-bottom: 25px;">
-        <h1 class='text-light text-center mb-2 mt-5'> Subscribe Now</h1>
-        <p class="text-center text-secondary mb-5">Get email notification for every new post. Don't worry it's free!!</p>
+        <h1 class='text-light text-center mb-2 mt-5'> Signup Now</h1>
+        <p class="text-center text-secondary mb-5">Get email notification for every new post, save post, add comments and many more. Don't worry it's free!!</p>
       </div>
       <div class="sub-container mt-4" id='sub-container'>
         <form id="subForm" method="post">
           {% csrf_token %}
           <div class="mb-3">
-            <label for="semail" class="form-label text-light">Enter your Email</label>
-            <input style="font-size: larger; font-weight: bold;" type="text" class="form-control text-white bg-transparent" name="semail" id="semail" required></input>
+              <label for="semail" class="form-label text-light">Enter your Email</label>
+              <input style="font-size: larger; font-weight: bold;" type="text" class="form-control text-white bg-transparent" name="semail" id="semail" required></input>
           </div>
-          <input type="hidden" name="type" value="sub">
+          <input type="hidden" name="type" value="signup">
           <div class="d-flex justify-content-center">
-            <button id="otpbtn" type="submit" class="btn btn-outline-light text-center mt-2"><b>Verify Email</b></button>
+              <button id="otpbtn" type="submit" class="btn btn-outline-light text-center mt-2"><b>Verify Email</b></button>
           </div>
         </form>
         <!-- OTP Form -->
-        <form id="otp-form" action="subscribe" method="post" hidden>
+        <form id="otp-form" method="POST" hidden>
           {% csrf_token %}
+          <div class="mb-3">
+              <label for="username" class="form-label text-light">Username</label>
+              <input style="font-size: larger; font-weight: bold;" type="text" class="form-control text-white bg-transparent" name="username" id="username" required></input>
+          </div>
+          <p id="validationResult" style="color:#FF6961" class="text-center"></p>
+          <div class="mb-3">
+              <label for="password" class="form-label text-light">Password</label>
+              <input style="font-size: larger; font-weight: bold;" pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$" title="Must contain at least one number, one uppercase and lowercase letter, and at least 8 characters" type="password" class="form-control text-white bg-transparent" name="password" id="password" required></input>
+          </div>
           <div class="mb-3">
             <label for="sotp" class="form-label text-light">Enter OTP</label>
             <input style="font-size: larger; font-weight: bold;" type="text" class="form-control text-white bg-transparent" name="sotp" id="sotp" required></input>
           </div>
           <div class="d-flex justify-content-center">
-            <button id="subbtn" type="submit" class="btn btn-outline-light text-center mt-2"><b>Subscribe</b></button>
+            <button id="subbtn" type="submit" class="btn btn-outline-light text-center mt-2"><b>Signup</b></button>
           </div>
         </form>
-        <div class="text-center mt-2" style="color: aliceblue;" id="otpmsg"></div>
-        <div class="loader" id="loader" hidden></div>
+        <div class="container">
+          <div class="text-center mt-2" style="color:#FF6961" id="rmsg"></div>
+          <div class="text-center mt-2" style="color: aliceblue;" id="otpmsg"></div>
+            <div class="loader" id="loader" hidden></div>
+            <hr style="border-top: 1px solid #bbb;">
+            <p style="text-align: center;"><a class=" link-light link-offset-2 link-underline link-underline-opacity-50" href="{% url 'signin' %}">Already have account? Signin</a></p>
+        </div>
       </div>
+    </div>
+    <div class="subconb">
+
     </div>
 
 </body>

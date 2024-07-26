@@ -26,10 +26,8 @@
 </style>
 
 <div class="container">
-    {% include "message.html" %}
     <h1 class='text-light text-center mb-2 mt-5'> Correction Form</h1>
-    <p class="text-center text-secondary">We are commited to provide accurate and authentic information,</p>
-    <p class="text-center text-secondary mb-5">Submit a correction regarding to citations, grammatical error and content.</p>
+    <p class="mx-auto" style="color:rgb(150, 150, 150); max-width:500px;">We are commited to provide accurate and authentic information, Submit a correction regarding to citations, grammatical error and content.</p>
     <div class="form-container mt-5 mb-5">
         <form method="post" action="correq" class="text-light text-bg-transparent">
             {% csrf_token %}

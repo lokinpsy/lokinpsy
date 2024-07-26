@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Change Password{% endblock title %}
+{% load static %}
+{% block body %}
+<script src="{% static 'sotp.js' %}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+  const passwordInput = document.getElementById("npass");
+  const requirements = document.getElementById("message");
+
+  passwordInput.addEventListener("input", function (f) {
+      f.preventDefault();
+      const valid = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/.test(passwordInput.value);
+      requirements.querySelectorAll("p").forEach((el) => {
+          el.classList.toggle("valid", valid);
+          el.classList.toggle("invalid", !valid);
+      });
+  });
+
+  const signform = document.getElementById("otp-form");
+  signform.addEventListener('submit',function(e){
+      e.preventDefault();
+      const formdata = new FormData(signform);
+      fetch("{% url 'fp' %}",{
+          method: 'POST',
+          body: formdata,
+      })
+      .then(response => response.json())
+      .then(redata => {
+        if (redata.msg == "successfull"){
+          window.location.replace("{% url 'me'%}");
+        }
+        else{
+          const dmsg = document.getElementById('rmsg');
+          dmsg.textContent = redata.msg;
+        }
+      })
+      .catch(error => {
+          console.error('Error fetching data:', error);
+      });
+  });
+});
+</script>
+
+<style>
+    body{
+        background-color: rgb(65, 67, 68);
+    }
+</style>
+  
+  
+  <div id="subcon" class="subcon mb-5">
+      <div class="mb-5" style="padding-top: 35px; margin-bottom: 25px;">
+        <h1 class='text-light text-center mb-2 mt-5'>Reset Password</h1>
+        <p class="text-center text-secondary mb-5">Get OTP on your registered email and change password</p>
+      </div>
+      <div class="sub-container mt-4" id='sub-container'>
+        <form id="subForm" method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="semail" class="form-label text-light">Enter your Email</label>
+            <input style="font-size: larger; font-weight: bold;" type="text" class="form-control text-white bg-transparent" name="semail" id="semail" required></input>
+          </div>
+          <input type="hidden" name="type" value="fp">
+          <div class="d-flex justify-content-center">
+              <button id="otpbtn" type="submit" class="btn btn-outline-light text-center mt-2"><b>Verify Email</b></button>
+          </div>
+        </form>
+        <!-- OTP Form -->
+        <form id="otp-form" method="POST" hidden>
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="npass" class="form-label text-light">Enter new password</label>
+            <input style="font-size: larger; font-weight: bold;" pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$" title="Must contain at least one number, one uppercase and lowercase letter, and at least 8 characters" type="password" class="form-control text-white bg-transparent" name="npass" id="npass" required></input>
+          </div>
+          <div class="mb-3">
+            <label for="sotp" class="form-label text-light">Enter OTP</label>
+            <input style="font-size: larger; font-weight: bold;" type="text" class="form-control text-white bg-transparent" name="sotp" id="sotp" required></input>
+          </div>
+          <div class="d-flex justify-content-center">
+            <button id="subbtn" type="submit" class="btn btn-outline-light text-center mt-2 mb-3"><b>Change Password</b></button>
+          </div>
+        </form>
+        <div class="text-center mt-2" style="color:#FF6961" id="rmsg"></div>
+        <div class="text-center mt-2" style="color: aliceblue;" id="otpmsg"></div>
+        <div class="loader" id="loader" hidden></div>
+      </div>
+  </div>
+
+{% endblock body %}
