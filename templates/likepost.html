@@ -52,9 +52,13 @@
         </ul>
         </nav>
     {% else %}
-        <div class="mx-auto">
+    <div class="d-flex justify-content-center align-itmes-center" style="height: 100vh;">
+        <div>
             <h5 class="text-light my-5">No Liked Post</h5>
+            <p><a href="/#allpost">See posts</a></p>
+            <p><i class="bi bi-heartbreak-fill text-light" style="font-size: 200px;"></i></p>
         </div>
+    </div>
     {% endif %}
 
 {% endblock body %}

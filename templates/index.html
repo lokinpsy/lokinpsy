@@ -126,7 +126,7 @@
       </div>
     </header>
     <!-- Post section -->
-    <div class="container">
+    <div id="allpost" class="container">
       {% if posts %}
         {% for post in posts %}
             {% if forloop.counter0|divisibleby:3 %}

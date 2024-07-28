@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %} About {% endblock %}
-{% block body %} <h1 class="text-light mt-3 mb-3 text-center">About US</h1>
+{% block body %}
 <style>
     .main-container {
         display: flex;
@@ -9,6 +9,7 @@
         align-items: center;
         justify-content: space-between;
         padding: 20px;
+        margin-top:50px;
     }
 
     /* Image styles */
@@ -44,9 +45,10 @@
     }
 </style>
 
-<div class="container">
+<div class="container" style="height:500px;">
+    <h1 class="text-light mt-5 mb-3 text-center">About US</h1>
     <div class="main-container">
-        <img src="{% static '/aupt.jpg' %}" alt="">
+        <img src="{% static '/aupt.jpg' %}">
         <div class="text">
             <b>Lokin Psy</b> is a blog website for Psychology learners and enthusiast.
             We post blog related to the concept, research and approaches in the psychology. Our <b>Mission</b> is to simplified and psychology more understandable to people.
