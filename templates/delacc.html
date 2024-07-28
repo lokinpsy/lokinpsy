@@ -67,6 +67,9 @@
     const signform = document.getElementById("otp-form");
     signform.addEventListener('submit',function(e){
         e.preventDefault();
+        messageDiv.hidden = false;
+        messageDiv.textContent = "Processing...";
+        loader.hidden = false;
         const formdata = new FormData(signform);
         fetch("{% url 'del_acc' %}",{
             method: 'POST',
