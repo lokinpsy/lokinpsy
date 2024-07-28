@@ -1,6 +1,22 @@
 {% extends "base.html" %}
 {% block title %}Signin{% endblock title %}
 {% block body %}
+
+<script>
+function showPass() {
+  var x = document.getElementById("password");
+  if (x.type === "password") {
+    x.type = "text";
+    document.getElementById("ens").hidden = true;
+    document.getElementById("es").hidden = false;
+  } else {
+    x.type = "password";
+    document.getElementById("ens").hidden = false;
+    document.getElementById("es").hidden = true;
+  }
+}
+</script>
+
 <div class="text-light text-center mt-5 mb-3">
     <h1>Welcome Back!</h1>
     <p>Signin to continue</p>
@@ -13,9 +29,15 @@
             <label for="username" class="form-label text-light">Username or Email</label>
             <input style="font-size: larger; font-weight: bold;" type="text" class="form-control text-white bg-transparent" name="username" id="username" required></input>
         </div>
-        <div class="mb-3">
-            <label for="password" class="form-label text-light">Password</label>
-            <input style="font-size: larger; font-weight: bold;" pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$" title="Must contain at least one number, one uppercase and lowercase letter, and at least 8 characters" type="password" class="form-control text-white bg-transparent" name="password" id="password" required></input>
+        <label for="password" class="form-label text-light">Password</label>
+        <div class="input-group mb-3">
+            <input pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$" title="Must contain at least one number, one uppercase and lowercase letter, and at least 8 characters" style="font-size: larger; font-weight: bold;" type="password" class="form-control text-white bg-transparent" name="password" id="password" required></input>
+            <span class="input-group-text bg-dark" id="basic-addon1">
+                <button type="button" class="btn btn-dark" onclick="showPass()">
+                    <i class="bi bi-eye" id='ens'></i>
+                    <i class="bi bi-eye-slash" hidden id='es'></i>
+                </button>
+            </span>
         </div>
         <div class="mb-3">
             <a class=" link-light link-offset-2 link-underline link-underline-opacity-50" href="{% url 'fp' %}">Forget Password?</a>
@@ -23,6 +45,7 @@
         <div class="d-flex justify-content-center">
           <button id="subbtn" type="submit" class="btn btn-outline-light text-center mt-2"><b>Signin</b></button>
         </div>
+
     </form>
       <div class="text-center mt-2" style="color: aliceblue;" id="otpmsg"></div>
       <div class="loader" id="loader" hidden></div>

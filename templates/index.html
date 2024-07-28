@@ -7,34 +7,29 @@
 {%block body%}
 <script src="{% static 'sotp.js' %}"></script>
 <script>
+  function showPass() {
+    var x = document.getElementById("password");
+    if (x.type === "password") {
+      x.type = "text";
+      document.getElementById("ens").hidden = true;
+      document.getElementById("es").hidden = false;
+    } else {
+      x.type = "password";
+      document.getElementById("ens").hidden = false;
+      document.getElementById("es").hidden = true;
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', function() {
-  const passwordInput = document.getElementById("password");
-  const requirements = document.getElementById("message");
-  const submitButton = document.getElementById("subbtn"); 
 
-  passwordInput.addEventListener("input", function () {
-      const valid = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/.test(passwordInput.value);
-      requirements.querySelectorAll("p").forEach((el) => {
-          el.classList.toggle("valid", valid);
-          el.classList.toggle("invalid", !valid);
-      });
-  });
-
-  const usernameInput = document.getElementById("username");
-  const validationResult = document.getElementById("validationResult");
-
-  usernameInput.addEventListener("input", function () {
-      const valid = /^[a-zA-Z0-9_]+$/.test(usernameInput.value);
-      validationResult.textContent = valid ? "" : "Invalid username. Only letters, numbers, and underscores are allowed.";
-      validationResult.style.color = valid ? "#FF6961" : "#FF6961";
-      submitButton.disabled = !valid;
-  });
-
-
+  const loader = document.getElementById('loader');
+  const messageDiv = document.getElementById('otpmsg');
   const signform = document.getElementById("otp-form");
   signform.addEventListener('submit',function(e){
       e.preventDefault();
       const formdata = new FormData(signform);
+      messageDiv.textContent = "Processing...";
+      loader.hidden = false;
       fetch("{% url 'signup' %}",{
           method: 'POST',
           body: formdata,
@@ -47,6 +42,8 @@
             else{
               const dmsg = document.getElementById('rmsg');
               dmsg.textContent = redata.msg;
+              messageDiv.hidden = true;
+              loader.hidden = true;
             }
       })
       .catch(error => {
@@ -97,6 +94,7 @@
       padding: 10px 20px;
       border-radius: 5px;
       cursor: pointer;
+      margin: 5px;
   }
 
     #postcol{
@@ -114,8 +112,8 @@
 <body>
     <header class="header">
       <div class="main-con" style="margin-top: 150px;">
-        <h1 id="comname">Welcome to Lokin Psy</h1>
-        <p id="tagline">Psychology in a Nutshell</p>
+        <h1 id="comname">Welcome to <strong>Lokin Psy</strong></h1>
+        <p id="tagline"><strong>Psychology in a Nutshell</strong></p>
         <div class="search-container mx-auto">
             <form id="search-form" action="search">
                 <input style="font-weight: bold;" type="text" placeholder="Search topic" name='searchquery' id='searchquery'>
@@ -134,7 +132,7 @@
             <div class="col">
             <a style="text-decoration: none;" href="{% url 'post' post.id %}">
                 <div id="postcol" class="card h-100 textlight bg-dark">
-                <img src="{{ post.images.url }}" class="card-img-top" style="height: 300px" alt="...">
+                <img src="{{ post.img_url }}" class="card-img-top" style="height: 300px" alt="...">
                 <div class="card-body">
                     <h1 class="card-title text-light">{{ post.title }}</h1>
                     <p class="card-text text-light mt-4">{{ post.intro }}</p>
@@ -173,58 +171,98 @@
         <h5 class="text-light text-center my-5">No posts yet</h5>
       {% endif %}
     </div>
-    <!-- Subscribe for free -->
+    <!-- Signup for free -->
     <hr>
     <div id="subcon" class="subcon">
-      <div class="mb-5" style="padding-top: 35px; margin-bottom: 25px;">
-        <h1 class='text-light text-center mb-2 mt-5'> Signup Now</h1>
-        <p class="text-center text-secondary mb-5">Get email notification for every new post, save post, add comments and many more. Don't worry it's free!!</p>
+      {% if user.is_authenticated %}
+        <div class="mb-5" style="padding-top: 35px; margin-bottom: 25px;">
+          <h2 class='text-light text-center'>Recommended Posts</h2>
+        </div>
+        <div class="container">
+          {% if ran_posts %}
+            {% for ran_post in ran_posts %}
+                {% if forloop.counter0|divisibleby:3 %}
+                <div class="row row-cols-1 row-cols-md-3 g-4 mt-5 mb-3">
+                {% endif %}
+                <div class="col">
+                <a style="text-decoration: none;" href="{% url 'post' ran_post.id %}">
+                    <div id="postcol" class="card h-100 textlight bg-dark">
+                    <img src="{{ ran_post.img_url }}" class="card-img-top" style="height: 300px" alt="...">
+                    <div class="card-body">
+                        <h1 class="card-title text-light">{{ ran_post.title }}</h1>
+                        <p class="card-text text-light mt-4">{{ ran_post.intro }}</p>
+                        <div class="card-footer">
+                        <p class="card-text text-secondary mt-1">{{ ran_post.category }}</p>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <small class="text-secondary bg-dark">Published on {{ ran_post.pub_date.date }}</small>
+                    </div>
+                    </div>
+                </a>
+                </div>
+                {% if forloop.counter0|add:1|divisibleby:3 or forloop.last %}
+                </div>
+                {% endif %}
+            {% endfor %}
+          {% endif %}
+          </div>
+          <div class="subconb">  
+        </div>
       </div>
-      <div class="sub-container mt-4" id='sub-container'>
-        <form id="subForm" method="post">
-          {% csrf_token %}
-          <div class="mb-3">
-              <label for="semail" class="form-label text-light">Enter your Email</label>
-              <input style="font-size: larger; font-weight: bold;" type="text" class="form-control text-white bg-transparent" name="semail" id="semail" required></input>
-          </div>
-          <input type="hidden" name="type" value="signup">
-          <div class="d-flex justify-content-center">
-              <button id="otpbtn" type="submit" class="btn btn-outline-light text-center mt-2"><b>Verify Email</b></button>
-          </div>
-        </form>
-        <!-- OTP Form -->
-        <form id="otp-form" method="POST" hidden>
-          {% csrf_token %}
-          <div class="mb-3">
+      {% else %}
+        <div class="mb-5" style="padding-top: 35px; margin-bottom: 25px;">
+          <h2 class='text-light text-center mb-2 mt-5'> Signup Now</h2>
+          <p class="text-center text-secondary mb-5">Get email notification for every new post, save post, add comments and many more. Don't worry it's free!!</p>
+        </div>
+        <div class="sub-container mt-4" id='sub-container'>
+          <form id="subForm" method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="semail" class="form-label text-light">Enter your Email</label>
+                <input style="font-size: larger; font-weight: bold;" type="email" class="form-control text-white bg-transparent" name="semail" id="semail" required></input>
+            </div>
+            <input type="hidden" name="type" value="signup">
+            <div class="d-flex justify-content-center">
+                <button id="otpbtn" type="submit" class="btn btn-outline-light text-center mt-2"><b>Verify Email</b></button>
+            </div>
+          </form>
+          <!-- OTP Form -->
+          <form id="otp-form" method="POST" hidden>
+            {% csrf_token %}
+            <div class="mb-3">
               <label for="username" class="form-label text-light">Username</label>
-              <input style="font-size: larger; font-weight: bold;" type="text" class="form-control text-white bg-transparent" name="username" id="username" required></input>
+              <input pattern="^[a-z0-9_]+$" title="Only lowercase letters, numbers and underscope allowed" style="font-size: larger; font-weight: bold;" type="text" class="form-control text-white bg-transparent" name="username" id="username" required></input>
           </div>
-          <p id="validationResult" style="color:#FF6961" class="text-center"></p>
-          <div class="mb-3">
-              <label for="password" class="form-label text-light">Password</label>
-              <input style="font-size: larger; font-weight: bold;" pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$" title="Must contain at least one number, one uppercase and lowercase letter, and at least 8 characters" type="password" class="form-control text-white bg-transparent" name="password" id="password" required></input>
+          <label for="password" class="form-label text-light">Password</label>
+          <div class="input-group mb-3">
+              <input pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$" title="Must contain at least one number, one uppercase and lowercase letter, and at least 8 characters" style="font-size: larger; font-weight: bold;" type="password" class="form-control text-white bg-transparent" name="password" id="password" required></input>
+              <span class="input-group-text bg-dark" id="basic-addon1">
+                  <button type="button" class="btn btn-dark" onclick="showPass()">
+                      <i class="bi bi-eye" id='ens'></i>
+                      <i class="bi bi-eye-slash" hidden id='es'></i>
+                  </button>
+              </span>
           </div>
           <div class="mb-3">
             <label for="sotp" class="form-label text-light">Enter OTP</label>
-            <input style="font-size: larger; font-weight: bold;" type="text" class="form-control text-white bg-transparent" name="sotp" id="sotp" required></input>
+            <input pattern = "\d{6}" title="OTP should be a 6-digit number" style="font-size: larger; font-weight: bold;" type="text" class="form-control text-white bg-transparent" name="sotp" id="sotp" required></input>
           </div>
-          <div class="d-flex justify-content-center">
-            <button id="subbtn" type="submit" class="btn btn-outline-light text-center mt-2"><b>Signup</b></button>
+            <div class="d-flex justify-content-center">
+              <button id="subbtn" type="submit" class="btn btn-outline-light text-center mt-2"><b>Signup</b></button>
+            </div>
+          </form>
+          <div class="container">
+            <div class="text-center mt-2" style="color:#FF6961" id="rmsg"></div>
+            <div class="text-center mt-2" style="color: aliceblue;" id="otpmsg"></div>
+              <div class="loader" id="loader" hidden></div>
+              <hr style="border-top: 1px solid #bbb;">
+              <p style="text-align: center;"><a class=" link-light link-offset-2 link-underline link-underline-opacity-50" href="{% url 'signin' %}">Already have account? Signin</a></p>
           </div>
-        </form>
-        <div class="container">
-          <div class="text-center mt-2" style="color:#FF6961" id="rmsg"></div>
-          <div class="text-center mt-2" style="color: aliceblue;" id="otpmsg"></div>
-            <div class="loader" id="loader" hidden></div>
-            <hr style="border-top: 1px solid #bbb;">
-            <p style="text-align: center;"><a class=" link-light link-offset-2 link-underline link-underline-opacity-50" href="{% url 'signin' %}">Already have account? Signin</a></p>
         </div>
-      </div>
     </div>
-    <div class="subconb">
-
-    </div>
-
+    <div class="subconb"></div>
+    {% endif %}
 </body>
 
 </html>

@@ -33,12 +33,7 @@
             },
             body: JSON.stringify({post_id:post_id})
         })
-        .then(response=>{
-            if(!response.ok){
-                console.error('error')
-            }
-            return response.json()
-        })
+        .then(response=>response.json())
         .then(data=>{
             if(data.liked){
                 likesvg.style.color = '#ff4e45';
@@ -68,12 +63,7 @@
             },
             body: JSON.stringify({post_id:post_id})
         })
-        .then(response=>{
-            if(!response.ok){
-                console.error('error')
-            }
-            return response.json()
-        })
+        .then(response=>response.json())
         .then(data=>{
             if(data.saved){
                 savesvg.style.color= 'white';
@@ -121,6 +111,13 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 1);
             height: 210px;
     }
+    .rcontainer{
+        background-color: #242424;
+        padding: 12px;
+    }
+    #postcol{
+      box-shadow: 1px 2px 3px 2px rgba(0, 0, 0, 0.5);
+    }
 </style>
 <dialog id="myDialog">
     <button id="closeDialog" class="btn btn-outline dark text-danger"><i class="bi bi-x-lg"></i></button>
@@ -130,7 +127,7 @@
     <div class="card-footer">
     </div>
 </dialog>
-<figure class="container-blog" style="position: relative;background-image: url('{{ post.images.url }}');background-size: cover;background-position: center;background-repeat: no-repeat;height: 700px;display: flex;flex-direction: column;justify-content: center;align-items: center;text-align: center;">
+<figure class="container-blog" style="position: relative;background-image: url('{{ post.img_url }}');background-size: cover;background-position: center;background-repeat: no-repeat;height: 700px;display: flex;flex-direction: column;justify-content: center;align-items: center;text-align: center;">
     <div class="overlay" style="position: absolute;top: 0;left: 0;width: 100%;height: 100%;background-color: rgba(0, 0, 0, 0.7);">
     </div>
     <h1 style="font-size: 300%;color:rgb(255, 255, 255); z-index: 2;">{{ post.title }}</h1>
@@ -184,5 +181,37 @@
     {{ post.content|safe }}
 </div>
 <!-- Related Post -->
+<div class="rcontainer">
+    <div class="container">
+        <h2 class="text-center text-light mb-3 mt-5">More Posts</h2>
+    {% if ran_posts %}
+      {% for ran_post in ran_posts %}
+          {% if forloop.counter0|divisibleby:3 %}
+          <div class="row row-cols-1 row-cols-md-3 g-4 mt-3 mb-5">
+          {% endif %}
+          <div class="col">
+          <a style="text-decoration: none;" href="{% url 'post' ran_post.id %}">
+              <div id="postcol" class="card h-100 textlight bg-dark">
+              <img src="{{ ran_post.img_url }}" class="card-img-top" style="height: 300px" alt="...">
+              <div class="card-body">
+                  <h1 class="card-title text-light">{{ ran_post.title }}</h1>
+                  <p class="card-text text-light mt-4">{{ ran_post.intro }}</p>
+                  <div class="card-footer">
+                  <p class="card-text text-secondary mt-1">{{ ran_post.category }}</p>
+                  </div>
+              </div>
+              <div class="card-footer">
+                  <small class="text-secondary bg-dark">Published on {{ ran_post.pub_date.date }}</small>
+              </div>
+              </div>
+          </a>
+          </div>
+          {% if forloop.counter0|add:1|divisibleby:3 or forloop.last %}
+          </div>
+          {% endif %}
+      {% endfor %}
+    {% endif %}
+    </div>    
+</div>
 
 {% endblock %}

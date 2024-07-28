@@ -13,7 +13,9 @@ import json
 def index(request):
     posts = models.Post.objects.all()
     page = helper.cus_paginator(request,posts,10)
-    context = {'posts':page}
+    ran_post = helper.ran_post(num_post=3,type='index',post_id=0)
+    context = {'posts':page,
+               'ran_posts':ran_post}
     return render(request, 'index.html', context)
 
 def search(request):
@@ -89,7 +91,9 @@ def sotp(request):
 # 5 Post view
 def post(request, id):
     post = get_object_or_404(models.Post, pk=id)
-    data = {"post": post}
+    ran_post = helper.ran_post(num_post=6,type='post',post_id=id)
+    data = {"post": post,
+            'ran_posts':ran_post}
     return render(request, 'post.html', data)
 
 # 6. Correction Form 
@@ -226,11 +230,11 @@ def like(request):
         post = get_object_or_404(models.Post, id=post_id)
         user = request.user
         if user.is_authenticated:
-            if request.user in post.likes.all():
-                post.likes.remove(request.user)
+            if user in post.likes.all():
+                post.likes.remove(user)
                 liked = False
             else:
-                post.likes.add(request.user)
+                post.likes.add(user)
                 liked = True
             return JsonResponse({'liked': liked, 'likes_count': post.likes.count()})
         else:
@@ -243,11 +247,11 @@ def save(request):
         post = get_object_or_404(models.Post, id=post_id)
         user = request.user
         if user.is_authenticated:
-            if request.user in post.saves.all():
-                post.saves.remove(request.user)
+            if user in post.saves.all():
+                post.saves.remove(user)
                 saved = False
             else:
-                post.saves.add(request.user)
+                post.saves.add(user)
                 saved = True
             return JsonResponse({'saved': saved})
         else:

@@ -25,7 +25,7 @@ class Post(models.Model):
     content = models.TextField()
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     pub_date = models.DateTimeField(timezone.now)
-    images= models.ImageField(upload_to='static')
+    img_url= models.URLField(blank=True)
     likes = models.ManyToManyField(User, related_name='like_posts', blank=True)
     saves = models.ManyToManyField(User, related_name='save_posts', blank=True)
 

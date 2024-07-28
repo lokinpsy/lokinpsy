@@ -7,20 +7,6 @@
         const usernameInput = document.getElementById("nusername");
         const validationResult = document.getElementById("rmsg");
         const submitButton = document.getElementById("chubtn");
-
-    usernameInput.addEventListener("input", function () {
-        const valid = /^[a-zA-Z0-9_]+$/.test(usernameInput.value);
-        validationResult.textContent = valid ? "" : "Invalid username. Only letters, numbers, and underscores are allowed.";
-        validationResult.style.color = valid ? "#FF6961" : "#FF6961";
-        submitButton.disabled = !valid;
-    });
-
-        usernameInput.addEventListener("input", function () {
-            const valid = /^[a-zA-Z0-9_]+$/.test(usernameInput.value);
-            validationResult.textContent = valid ? "" : "Invalid username. Only letters, numbers, and underscores are allowed.";
-            validationResult.style.color = valid ? "#FF6961" : "#FF6961";
-        });
-
         const chuform = document.getElementById('chu-form');
         chuform.addEventListener('submit',function(e){
             e.preventDefault();
@@ -70,7 +56,7 @@
                                             <form class="row g-3" id="chu-form" method="post">
                                                 {% csrf_token %}
                                                 <div class="col-auto">
-                                                  <input type="text" class="form-control bg-transparent text-light" id="nusername" placeholder="{{user.username}}" style="font-weight: bold;" name="nusername" required>
+                                                  <input pattern="^[a-z0-9_]+$" title="Only lowercase letters, numbers and underscope allowed" type="text" class="form-control bg-transparent text-light" id="nusername" placeholder="{{user.username}}" style="font-weight: bold;" name="nusername" required>
                                                 </div>
                                                 <div class="col-auto">
                                                   <button id="chubtn" type="submit" class="btn btn-outline-light"><strong>Save changes</strong></button>

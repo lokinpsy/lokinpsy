@@ -4,33 +4,28 @@
 {% block body %}
 <script src="{% static 'sotp.js' %}"></script>
 <script>
+    function showPass() {
+        var x = document.getElementById("password");
+        if (x.type === "password") {
+          x.type = "text";
+          document.getElementById("ens").hidden = true;
+          document.getElementById("es").hidden = false;
+        } else {
+          x.type = "password";
+          document.getElementById("ens").hidden = false;
+          document.getElementById("es").hidden = true;
+        }
+      }
+
     document.addEventListener('DOMContentLoaded', function() {
-    const passwordInput = document.getElementById("password");
-    const requirements = document.getElementById("message");
-    const submitButton = document.getElementById("subbtn"); 
-
-    passwordInput.addEventListener("input", function () {
-        const valid = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/.test(passwordInput.value);
-        requirements.querySelectorAll("p").forEach((el) => {
-            el.classList.toggle("valid", valid);
-            el.classList.toggle("invalid", !valid);
-        });
-    });
-
-    const usernameInput = document.getElementById("username");
-    const validationResult = document.getElementById("validationResult");
-
-    usernameInput.addEventListener("input", function () {
-        const valid = /^[a-zA-Z0-9_]+$/.test(usernameInput.value);
-        validationResult.textContent = valid ? "" : "Invalid username. Only letters, numbers, and underscores are allowed.";
-        validationResult.style.color = valid ? "#FF6961" : "#FF6961";
-        submitButton.disabled = !valid;
-    });
-
-
+    
+    const loader = document.getElementById('loader');
+    const messageDiv = document.getElementById('otpmsg');
     const signform = document.getElementById("otp-form");
     signform.addEventListener('submit',function(e){
         e.preventDefault();
+        messageDiv.textContent = "Processing...";
+        loader.hidden = false;
         const formdata = new FormData(signform);
         fetch("{% url 'signup' %}",{
             method: 'POST',
@@ -44,6 +39,8 @@
               else{
                 const dmsg = document.getElementById('rmsg');
                 dmsg.textContent = redata.msg;
+                messageDiv.hidden = true;
+                loader.hidden = true;
               }
         })
         .catch(error => {
@@ -60,7 +57,7 @@
         {% csrf_token %}
         <div class="mb-3">
             <label for="semail" class="form-label text-light">Enter your Email</label>
-            <input style="font-size: larger; font-weight: bold;" type="text" class="form-control text-white bg-transparent" name="semail" id="semail" required></input>
+            <input style="font-size: larger; font-weight: bold;" type="email" class="form-control text-white bg-transparent" name="semail" id="semail" required></input>
         </div>
         <input type="hidden" name="type" value="signup">
         <div class="d-flex justify-content-center">
@@ -71,16 +68,21 @@
         {% csrf_token %}
         <div class="mb-3">
             <label for="username" class="form-label text-light">Username</label>
-            <input style="font-size: larger; font-weight: bold;" type="text" class="form-control text-white bg-transparent" name="username" id="username" required></input>
+            <input pattern="^[a-z0-9_]+$" title="Only lowercase letters, numbers and underscope allowed" style="font-size: larger; font-weight: bold;" type="text" class="form-control text-white bg-transparent" name="username" id="username" required></input>
         </div>
-        <p id="validationResult" style="color:#FF6961" class="text-center"></p>
-        <div class="mb-3">
-            <label for="password" class="form-label text-light">Password</label>
-            <input style="font-size: larger; font-weight: bold;" pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$" title="Must contain at least one number, one uppercase and lowercase letter, and at least 8 characters" type="password" class="form-control text-white bg-transparent" name="password" id="password" required></input>
+        <label for="password" class="form-label text-light">Password</label>
+        <div class="input-group mb-3">
+            <input pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$" title="Must contain at least one number, one uppercase and lowercase letter, and at least 8 characters" style="font-size: larger; font-weight: bold;" type="password" class="form-control text-white bg-transparent" name="password" id="password" required></input>
+              <span class="input-group-text bg-dark" id="basic-addon1">
+                  <button type="button" class="btn btn-dark" onclick="showPass()">
+                    <i class="bi bi-eye" id='ens'></i>
+                    <i class="bi bi-eye-slash" hidden id='es'></i>
+                </button>
+            </span>
         </div>
         <div class="mb-3">
           <label for="sotp" class="form-label text-light">Enter OTP</label>
-          <input style="font-size: larger; font-weight: bold;" type="text" class="form-control text-white bg-transparent" name="sotp" id="sotp" required></input>
+          <input pattern = "\d{6}" title="OTP should be a 6-digit number" style="font-size: larger; font-weight: bold;" type="text" class="form-control text-white bg-transparent" name="sotp" id="sotp" required></input>
         </div>
         <div class="d-flex justify-content-center">
           <button id="subbtn" type="submit" class="btn btn-outline-light text-center mt-2"><b>Signup</b></button>

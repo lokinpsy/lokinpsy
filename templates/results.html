@@ -1,6 +1,13 @@
 {% extends "base.html" %}
 {% block title %}{{query}}{% endblock%}
 {% block body %}
+
+<style>
+  #postcol{
+    box-shadow: 1px 2px 3px 2px rgba(0, 0, 0, 0.5);
+  }
+</style>
+
 <div class="container">
     {% if results %}
         <h5 class="h5 text-white text-center mt-5 mb-3">Search results for <strong>"{{query}}"</strong></h5>
@@ -12,7 +19,7 @@
             <div class="col">
             <a style="text-decoration: none;" href="{% url 'post' post.id %}">
                 <div id="postcol" class="card h-100 textlight bg-dark">
-                    <img src="{{ post.images.url }}" class="card-img-top" style="height: 300px" alt="...">
+                    <img src="{{ post.img_url }}" class="card-img-top" style="height: 300px" alt="...">
                     <div class="card-body">
                       <h1 class="card-title text-light">{{ post.title }}</h1>
                       <p class="card-text text-light mt-4">{{ post.intro }}</p>
@@ -30,6 +37,7 @@
             </div>
             {% endif %}
         {% endfor %}
+          <hr>
         <nav aria-label="Page navigation example" style="text-align: center;">
             <ul class="pagination justify-content-center">
                 {% if results.has_previous %}
